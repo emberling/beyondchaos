@@ -1528,7 +1528,7 @@ class MonsterBlock:
     def deadspecial(self):
         return (self.special & 0x3F) in [0x07, 0x10, 0x18]
 
-    def mutate_special(self, darkworld=False, narshesafe=False):
+    def mutate_special(self, darkworld=False, saferace=False):
         if self.goodspecial:
             return
 
@@ -1540,15 +1540,15 @@ class MonsterBlock:
         if branch <= branches[0]:
             # regular special
             valid = set(range(0, 0x0F))
-            if narshesafe and not darkworld:
-                valid = [0, 2, 3, 5, 8, 9, 0xb, 0xc, 0xd, 0xe, 0xf,
-                         0x10, 0x12, 0x14, 0x18, 0x30, 0x31, 0x80]
+            if saferace and not darkworld:
+                valid = [0, 2, 3, 4, 8, 9, 0xa, 0xb, 0xe, 0xf, 0x10, 0x12, 0x13,
+                          0x14, 0x15, 0x16, 0x17, 0x18, 0x30, 0x31, 0x80]
             else: 
                 valid = [0, 1, 2, 3, 5, 6, 7, 8, 9, 0xb, 0xc, 0xd, 0xe, 0xf,
                          0x10, 0x12, 0x14, 0x18, 0x19, 0x30, 0x31, 0x80]
             if random.randint(1, 1000) != 1000:
                 valid.remove(0x03)  # Magitek
-            if random.randint(1, 5) != 5:
+            if random.randint(1, 5) != 5 or saferace is True:
                 valid.remove(0x10)  # dance
                 valid.remove(0x18)  # rage
             valid = [r for r in ranked if r in valid]
@@ -1569,6 +1569,9 @@ class MonsterBlock:
         elif branch > branches[1]:
             # bonus special
             valid = set(range(10, 0x1F))
+            if saferace is True:
+                valid.remove(0xc) #berserk
+                valid.remove(0xd) #muddle				
             if not self.is_boss or random.randint(1, 1000) != 1000:
                 valid.remove(0x1D)  # disappear
                 valid.remove(0x1E)  # Interceptor
@@ -1589,7 +1592,7 @@ class MonsterBlock:
 
         self.special = special
 
-    def mutate(self, change_skillset=None, itembreaker=False, randombosses=False, madworld=False, darkworld=False):
+    def mutate(self, change_skillset=None, itembreaker=False, randombosses=False, madworld=False, darkworld=False, easyrace=False):
         if change_skillset is None:
             change_skillset = randombosses or not (self.is_boss or self.boss_death)
             manual_change = False
@@ -1601,12 +1604,12 @@ class MonsterBlock:
             self.mutate_statuses()
         if madworld or random.randint(1, 10) > 5:
             self.mutate_affinities(odds=5 if madworld else 10)
-        if madworld or random.randint(1, 10) > 5:
+        if easyrace:
+            self.mutate_special(darkworld=darkworld, saferace=True)
+        elif madworld or random.randint(1, 10) > 5:
             # do this before mutate_control
-            if self.stats['level'] <= 7:
-                 self.mutate_special(darkworld=darkworld, narshesafe=True)
-            else:
-                 self.mutate_special(darkworld=darkworld)
+            self.mutate_special(darkworld=darkworld)
+			
         if manual_change and change_skillset:
             value = 10
         else:

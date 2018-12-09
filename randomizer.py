@@ -1953,6 +1953,7 @@ def manage_monsters():
     itembreaker = "collateraldamage" in activated_codes
     randombosses = "randombosses" in activated_codes
     madworld = "madworld" in activated_codes
+    easyrace = "easyrace" in activated_codes
     darkworld = "darkworld" in activated_codes
     change_skillset = True if darkworld in activated_codes else None
     final_bosses = (range(0x157, 0x160) + range(0x127, 0x12b) +
@@ -1968,20 +1969,20 @@ def manage_monsters():
                 m.randomize_boost_level()
                 if darkworld:
                     m.increase_enemy_difficulty()
-                m.mutate(change_skillset=True, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld)
+                m.mutate(change_skillset=True, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld, easyrace=easyrace)
             else:
-                m.mutate(change_skillset=change_skillset, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld)
+                m.mutate(change_skillset=change_skillset, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld, easyrace=easyrace)
             if 0x127 <= m.id < 0x12a or m.id == 0x17d or m.id == 0x11a:
                 # boost statues, Atma, final kefka a second time
                 m.randomize_boost_level()
                 if darkworld:
                     m.increase_enemy_difficulty()				
-                m.mutate(change_skillset=change_skillset, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld)
+                m.mutate(change_skillset=change_skillset, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld, easyrace=easyrace)
             m.misc1 &= (0xFF ^ 0x4)  # always show name
         else:
             if darkworld:
                 m.increase_enemy_difficulty()
-            m.mutate(change_skillset=change_skillset, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld)				
+            m.mutate(change_skillset=change_skillset, itembreaker=itembreaker, randombosses=randombosses, madworld=madworld, darkworld=darkworld, easyrace=easyrace)				
 
         m.tweak_fanatics()
         m.relevel_specifics()
@@ -2719,7 +2720,8 @@ def manage_colorize_animations():
 def manage_items(items, changed_commands=None):
     from itemrandomizer import (set_item_changed_commands, extend_item_breaks)
     always_break = True if "collateraldamage" in activated_codes else False
-    crazy_prices = True if "madworld" in activated_codes else False
+    crazy_prices = True if "madworld" in activated_codes or "easyrace" in activated_codes else False
+    easyrace = True if "easyrace" in activated_codes else False
     extra_effects= True if "masseffect" in activated_codes else False
     wild_breaks = True if "electricboogaloo" in activated_codes else False
 
@@ -3131,7 +3133,7 @@ def manage_chests():
                     if c.contenttype == 0x40 and c.contents == 166:
                         c.contents = 33
 
-        l.mutate_chests(crazy_prices=crazy_prices)
+        l.mutate_chests(crazy_prices=crazy_prices, easyrace=easyrace)
     locations = sorted(locations, key=lambda l: l.locid)
 
     for m in get_monsters():
@@ -3639,7 +3641,7 @@ def get_shops():
 def manage_shops():
     buyables = set([])
     descriptions = []
-    crazy_shops = True if "madworld" in activated_codes else False
+    crazy_shops = True if "madworld" in activated_codes or "easyrace" in activated_codes else False
     for s in get_shops():
         s.mutate_items(fout, crazy_shops)
         s.mutate_misc()
@@ -5268,7 +5270,7 @@ def manage_ancient():
                     and f.get_music() != 0]):
                 return False
         best_drop = formation.get_best_drop()
-        if best_drop and (best_drop.price <= 2 or best_drop.price >= 30000 or "madworld" in activated_codes):
+        if best_drop and (best_drop.price <= 2 or best_drop.price >= 30000 or "madworld" in activated_codes or "easyrace" in activated_codes):
             return True
         return False
 
@@ -5574,6 +5576,9 @@ def manage_ancient():
             npc_palettes[g] = range(6)
 
     def make_paysub(template, template2, loc, ptr):
+        easyrace = True if "easyrace" in activated_codes else False
+        crazy_prices = True if "madworld" in activated_codes or "easyrace" in activated_codes else False
+        
         sub = Substitution()
         sub.set_location(ptr)
         price, message = prices[loc.restrank]
@@ -5936,7 +5941,7 @@ def manage_ancient():
                 enemy_limit = None
             l.unlock_chests(int(low), int(high), monster=monster,
                             guarantee_miab_treasure=True,
-                            enemy_limit=enemy_limit)
+                            enemy_limit=enemy_limit, crazy_prices=crazy_prices, easyrace=easyrace)
 
         l.write_data(fout)
 
@@ -6077,7 +6082,7 @@ def manage_spookiness():
         nowhere_to_run_bottom_sub.write(fout)
         
 def manage_dances():
-    if 'madworld' in activated_codes:
+    if 'madworld' in activated_codes or 'easyrace' in activated_codes:
          spells = get_ranked_spells(sourcefile)
          dances = random.sample(spells, 32)
          dances = [s.spellid for s in dances]
@@ -6371,6 +6376,7 @@ k   Randomize the clock in Zozo
     secret_codes['randombosses'] = "RANDOM BOSSES MODE"
     secret_codes['electricboogaloo'] = "WILD ITEM BREAK MODE"
     secret_codes['notawaiter'] = "CUTSCENE SKIPS"
+    secret_codes['easyrace'] = "EASY RACE MODE"
     secret_codes['johnnydmad'] = "MUSIC REPLACEMENT MODE"
     secret_codes['johnnyachaotic'] = "MUSIC MANGLING MODE"
     s = ""
@@ -6404,7 +6410,7 @@ k   Randomize the clock in Zozo
         except:
             multiplier = None
         set_randomness_multiplier(multiplier)
-    elif 'madworld' in activated_codes:
+    elif 'madworld' in activated_codes or 'easyrace' in activated_codes:
         set_randomness_multiplier(None)
 
     fout = open(outfile, "r+b")
@@ -6436,11 +6442,12 @@ k   Randomize the clock in Zozo
     reseed()
 
     spells = get_ranked_spells(sourcefile)
-    if 'madworld' in activated_codes:
+    if 'madworld' in activated_codes or 'easyrace' in activated_codes:
         random.shuffle(spells)
         for i, s in enumerate(spells):
             s._rank = i+1
             s.valid = True
+            
     if 'w' in flags and 'suplexwrecks' not in activated_codes:
         if 'quikdraw' in activated_codes:
             ALWAYS_REPLACE += ["rage"]
@@ -6632,7 +6639,8 @@ k   Randomize the clock in Zozo
         manage_treasure(monsters, shops=True)
         if 'ancientcave' not in activated_codes:
             manage_chests()
-            mutate_event_items(fout, cutscene_skip='notawaiter' in activated_codes)
+            crazy_prices = True if "madworld" in activated_codes or "easyrace" in activated_codes else False
+            mutate_event_items(fout, cutscene_skip='notawaiter' in activated_codes, crazy_prices=crazy_prices, easyrace='easyrace' in activated_codes)
             for fs in fsets:
                 # write new formation sets for MiaBs
                 fs.write_data(fout)
