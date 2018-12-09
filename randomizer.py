@@ -2721,8 +2721,7 @@ def manage_items(items, changed_commands=None):
     from itemrandomizer import (set_item_changed_commands, extend_item_breaks)
     always_break = True if "collateraldamage" in activated_codes else False
     crazy_prices = True if "madworld" in activated_codes or "easyrace" in activated_codes else False
-    easyrace = True if "easyrace" in activated_codes else False
-    extra_effects= True if "masseffect" in activated_codes else False
+    extra_effects = True if "masseffect" in activated_codes else False
     wild_breaks = True if "electricboogaloo" in activated_codes else False
 
     set_item_changed_commands(changed_commands)
@@ -3122,7 +3121,8 @@ def manage_treasure(monsters, shops=True):
 
 
 def manage_chests():
-    crazy_prices = True if "madworld" in activated_codes else False
+    crazy_prices = True if "madworld" in activated_codes or "easyrace" in activated_codes else False
+    easyrace = True if "easyrace" in activated_codes else False
     locations = get_locations(sourcefile)
     locations = sorted(locations, key=lambda l: l.rank())
     for l in locations:
