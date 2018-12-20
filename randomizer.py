@@ -4924,6 +4924,8 @@ def manage_clock():
         second_text_sub2.write(fout)
 
 def manage_ancient():
+    crazy_prices = True if "madworld" in activated_codes or "easyrace" in activated_codes else False
+    easyrace = True if "easyrace" in activated_codes else False
     change_battle_commands = [41, 42, 43]
     if 'o' not in flags:
         alrs = AutoLearnRageSub(require_gau=True)
