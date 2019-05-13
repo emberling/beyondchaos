@@ -15,7 +15,7 @@ from utils import (ESPER_TABLE,
                    Substitution, shorttexttable, name_to_bytes,
                    hex2int, int2bytes, read_multi, write_multi,
                    generate_swapfunc, shift_middle, get_palette_transformer,
-                   battlebg_palettes, set_randomness_multiplier,
+                   battlebg_palettes, shuffle_char_hues, generate_character_palette, set_randomness_multiplier,
                    mutate_index, utilrandom as random, open_mei_fallback,
                    dialogue_to_bytes)
 from skillrandomizer import (SpellBlock, CommandBlock, SpellSub, ComboSpellSub,
@@ -2132,33 +2132,43 @@ def manage_monster_appearance(monsters, preserve_graphics=False):
     return mgs
 
 
-def recolor_character_palette(pointer, palette=None, flesh=False, middle=True, santa=False):
+def recolor_character_palette(pointer, palette=None, flesh=False, middle=True, santa=False, skintones = None, char_hues = None, trance = False):
     fout.seek(pointer)
     if palette is None:
         palette = [read_multi(fout, length=2) for _ in range(16)]
         outline, eyes, hair, skintone, outfit1, outfit2, NPC = (
             palette[:2], palette[2:4], palette[4:6], palette[6:8],
             palette[8:10], palette[10:12], palette[12:])
-        new_palette = []
         def components_to_color(xxx_todo_changeme):
             (red, green, blue) = xxx_todo_changeme
             return red | (green << 5) | (blue << 10)
 
+        new_style_palette = None
+        if skintones and char_hues:
+            new_style_palette = generate_character_palette(skintones, char_hues, trance=trance)
+            if random.randint(1,100) == 1:
+                transformer = get_palette_transformer(middle=middle)
+                new_style_palette = transformer(new_style_palette)
+        elif trance:
+            new_style_palette = generate_character_palette(trance=True)
+            
+        new_palette = new_style_palette if new_style_palette else []
         if not flesh:
-            for piece in (outline, eyes, hair, skintone, outfit1, outfit2, NPC):
+            pieces = (outline, eyes, hair, skintone, outfit1, outfit2, NPC) if not new_style_palette else [NPC]
+            for piece in pieces:
                 transformer = get_palette_transformer(middle=middle)
                 piece = list(piece)
                 piece = transformer(piece)
                 new_palette += piece
-            new_palette[6:8] = skintone
+            if not new_style_palette: new_palette[6:8] = skintone
             if 'christmas' in activated_codes:
                 if santa:
                     # color kefka's palette to make him look santa-ish
                     new_palette = palette
-                    new_palette[4] = components_to_color((0x1f, 0x1f, 0x1f)) #0x7fff
-                    new_palette[8] = components_to_color((0x1f, 0x1f, 0x1c)) #0x73ff
-                    new_palette[9] = components_to_color((0x00, 0x07, 0x00)) #0x00e0
-                    new_palette[11] = components_to_color((0x1c, 0x02, 0x04)) #0x105c
+                    new_palette[8] = components_to_color((0x18, 0x18, 0x16))
+                    new_palette[9] = components_to_color((0x16, 0x15, 0x0F))
+                    new_palette[10] = components_to_color((0x1C, 0x08, 0x03))
+                    new_palette[11] = components_to_color((0x18, 0x02, 0x05))
                 else:
                     # give them red & green outfits
                     red = [components_to_color((0x19, 0x00, 0x05)), components_to_color((0x1c, 0x02, 0x04)) ]
@@ -2174,6 +2184,8 @@ def recolor_character_palette(pointer, palette=None, flesh=False, middle=True, s
         else:
             transformer = get_palette_transformer(middle=middle)
             new_palette = transformer(palette)
+            if new_style_palette:
+                new_palette = new_style_palette[0:12] + new_palette[12:]
 
         palette = new_palette
 
@@ -2457,7 +2469,24 @@ def manage_character_appearance(preserve_graphics=False):
     ghost_mode = 'halloween' in activated_codes
     christmas_mode = 'christmas' in activated_codes
     sprite_swap_mode = 'makeover' in activated_codes and not (sabin_mode or tina_mode or soldier_mode or moogle_mode or ghost_mode)
+    new_palette_mode = not 'sometimeszombies' in activated_codes
 
+    if new_palette_mode:
+        # import recolors for incompatible base sprites
+        recolors = [("cyan", 0x152D40, 0x16A0),  ("mog", 0x15E240, 0x16A0),
+                    ("umaro", 0x162620, 0x16A0), ("dancer", 0x1731C0, 0x5C0),
+                    ("lady", 0x1748C0, 0x5C0)]
+        for rc in recolors:
+            filename = os.path.join("data","sprites","RC" + rc[0] + ".bin")
+            try:
+                with open_mei_fallback(filename, "rb") as f:
+                    sprite = f.read()
+            except:
+                continue
+            if len(sprite) >= rc[2]: sprite = sprite[:rc[2]]
+            fout.seek(rc[1])
+            fout.write(sprite)
+            
     if (wild or tina_mode or sabin_mode or christmas_mode):
         if christmas_mode:
             char_ids = list(range(0, 0x15)) # don't replace kefka
@@ -2661,6 +2690,12 @@ def manage_character_appearance(preserve_graphics=False):
         newsprite = newsprite[:ssizes[c]]
         fout.write(newsprite)
 
+    # celes in chains
+    fout.seek(0x159500)
+    chains = fout.read(192)
+    fout.seek(0x17D660)
+    fout.write(chains)
+    
     manage_palettes(change_to, char_ids)
 
 
@@ -2668,6 +2703,7 @@ def manage_palettes(change_to, char_ids):
     sabin_mode = 'suplexwrecks' in activated_codes
     tina_mode = 'bravenudeworld' in activated_codes
     christmas_mode = 'christmas' in activated_codes
+    new_palette_mode = not 'sometimeszombies' in activated_codes
     characters = get_characters()
     npcs = get_npcs()
     charpal_options = {}
@@ -2679,14 +2715,33 @@ def manage_palettes(change_to, char_ids):
         charid = hex2int(charid)
         charpal_options[charid] = palettes
 
+    if new_palette_mode:
+        twinpal = random.randint(0,5)
+        char_palette_pool = list(range(0,6)) + list(range(0,6))
+        char_palette_pool.remove(twinpal)
+        char_palette_pool.append(random.choice(list(range(0,twinpal))+list(range(twinpal,6))))
+        while True:
+            random.shuffle(char_palette_pool)
+            if char_palette_pool[0] == twinpal or char_palette_pool[1] == twinpal:
+                continue
+            break
+        char_palette_pool = char_palette_pool[:4] + [twinpal, twinpal] + char_palette_pool[4:]
+        
     palette_change_to = {}
+    additional_celeses = []
     for npc in npcs:
+        if npc.graphics == 0x41:
+            additional_celeses.append(npc)
         if npc.graphics not in charpal_options:
             continue
         if npc.graphics in change_to:
             new_graphics = change_to[npc.graphics]
             if (npc.graphics, npc.palette) in palette_change_to:
                 new_palette = palette_change_to[(npc.graphics, npc.palette)]
+            elif new_palette_mode and npc.graphics < 14:
+                new_palette = char_palette_pool[npc.graphics]
+                palette_change_to[(npc.graphics, npc.palette)] = new_palette
+                npc.palette = new_palette
             else:
                 while True:
                     new_palette = random.choice(charpal_options[new_graphics])
@@ -2701,7 +2756,10 @@ def manage_palettes(change_to, char_ids):
                 palette_change_to[(npc.graphics, npc.palette)] = new_palette
                 npc.palette = new_palette
             npc.palette = new_palette
-
+    for npc in additional_celeses:
+        if (6,0) in palette_change_to:
+            npc.palette = palette_change_to[(6,0)]
+    
     main_palette_changes = {}
     for character in characters:
         c = character.id
@@ -2729,16 +2787,41 @@ def manage_palettes(change_to, char_ids):
     if "repairpalette" in activated_codes:
         make_palette_repair(main_palette_changes)
 
+    if new_palette_mode:
+        char_hues = shuffle_char_hues([ 0, 15, 30, 45, 60, 75, 90, 120, 150, 165, 180, 210, 240, 270, 300, 315, 330, 360 ])
+        skintones = [ ( (31,24,17), (25,13, 7) ),
+                      ( (31,23,15), (25,15, 8) ),
+                      ( (31,24,17), (25,13, 7) ),
+                      ( (31,25,15), (25,19,10) ),
+                      ( (31,25,16), (24,15,12) ),
+                      ( (27,17,10), (20,12,10) ),
+                      ( (25,20,14), (19,12, 4) ),
+                      ( (27,22,18), (20,15,12) ),
+                      ( (28,22,16), (22,13, 6) ),
+                      ( (28,23,15), (22,16, 7) ),
+                      ( (27,23,15), (20,14, 9) ) ]
+        if christmas_mode or random.randint(1,100) > 50:
+            skintones.append( ((29,29,30),(25,25,27)) )
+        random.shuffle(skintones)
+        
     for i in range(6):
         pointer = 0x268000 + (i*0x20)
-        palette = recolor_character_palette(pointer, palette=None,
+        if new_palette_mode:
+            palette = recolor_character_palette(pointer, palette=None,
+                                    flesh=(i == 5), santa=(christmas_mode and i==3),
+                                    skintones=skintones, char_hues=char_hues)
+        else:
+            palette = recolor_character_palette(pointer, palette=None,
                                             flesh=(i == 5), santa=(christmas_mode and i==3))
         pointer = 0x2D6300 + (i*0x20)
         recolor_character_palette(pointer, palette=palette)
 
     # esper terra
     pointer = 0x268000 + (8*0x20)
-    palette = recolor_character_palette(pointer, palette=None, flesh=True,
+    if new_palette_mode:
+        palette = recolor_character_palette(pointer, palette=None, trance=True)
+    else:
+        palette = recolor_character_palette(pointer, palette=None, flesh=True,
                                         middle=False)
     pointer = 0x2D6300 + (6*0x20)
     palette = recolor_character_palette(pointer, palette=palette)
@@ -6733,6 +6816,7 @@ r   Randomize character locations in the world of ruin.
     secret_codes['rushforpower'] = "OLD VARGAS FIGHT MODE"
     secret_codes['johnnydmad'] = "MUSIC REPLACEMENT MODE"
     secret_codes['johnnyachaotic'] = "MUSIC MANGLING MODE"
+    secret_codes['sometimeszombies'] = "OLD CHARACTER PALETTE MODE"
     s = ""
     for code, text in secret_codes.items():
         if code in flags:
@@ -7196,6 +7280,8 @@ if __name__ == "__main__":
         input("Press enter to close this program. ")
     except Exception as e:
         print("ERROR: %s" % e)
+        import traceback
+        traceback.print_exc()
         if fout:
             fout.close()
         if outfile is not None:
