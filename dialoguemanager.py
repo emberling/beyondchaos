@@ -67,6 +67,13 @@ def dialogue_to_bytes(text, null_terminate=True):
         bs.append(0x0)
     return bytes(bs)
     
+id_names = ['terra','locke','cyan','shadow','edgar','sabin','celes','strago','relm','setzer','mog','gau','gogo','umaro','trooper','kappa','leo','banon','trance','merchant','ghost','kefka']
+gendered_nouns = { #male, female, neutral
+    'person': ['man','woman','person'],
+    'youth': ['boy','girl','youth'],
+    'kid': ['boy','girl','kid'],
+    'guy': ['guy','girl','kid']
+    }
     
 def set_dialogue_var(k, v):
     dialogue_vars[k.lower()] = v
@@ -78,8 +85,14 @@ def set_dialogue_flag(f, v=True):
         dialogue_flags.remove(f)
         
 def set_pronoun(name, gender, force=True):
+    #allow using charid instead of name
+    if name in range(0,22):
+        name = id_names[name]
+        
     gender = gender.lower()
     name = name.lower().capitalize()
+    
+    print(f"{name} is {gender}")
     
     if "random" in gender:
         force = True
@@ -91,6 +104,7 @@ def set_pronoun(name, gender, force=True):
     if not force:
         if gender == "neutral":
             gender = random.choice( ["male"]*9+["female"]*9+["neutral"]*2 )
+            print(f"        resolved to {gender}")
         elif gender != "object":
             gender = random.choice( [gender]*19+["neutral"] )
             
@@ -111,7 +125,12 @@ def set_pronoun(name, gender, force=True):
     pmap = ("Ey", "Em", "Eir", "Eirs", "EyIs")
     for i in range(5):
         set_dialogue_var(name + pmap[i], pset[i])
-        
+    
+    # populate gendered nouns
+    idx = 0 if gender == 'male' else (1 if gender == 'female' else 2)
+    for k,v in gendered_nouns.items():
+        set_dialogue_var(name + k, v[idx])
+    
     return gender
     
 def patch_dialogue(id, from_text, to_text, index=None, battle=False):

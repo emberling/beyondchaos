@@ -41,7 +41,7 @@ from chestrandomizer import mutate_event_items, get_event_items
 from towerrandomizer import randomize_tower
 from musicrandomizer import randomize_music, manage_opera, insert_instruments
 from menufeatures import (improve_item_display, improve_gogo_status_menu, improve_rage_menu, show_original_names, improve_dance_menu, y_equip_relics, fix_gogo_portrait)
-from dialoguemanager import manage_dialogue_patches
+from dialoguemanager import manage_dialogue_patches, load_patch_file, set_pronoun
 from decompress import Decompressor
 from character import get_characters, get_character, equip_offsets
 from options import ALL_MODES, ALL_FLAGS, NORMAL_CODES, TOP_SECRET_CODES, MAKEOVER_MODIFIER_CODES, options_
@@ -2234,8 +2234,8 @@ def get_sprite_swaps(char_ids, male, female, vswaps):
         is_replaced = [True] * num_to_replace + [False]*(len(char_ids)-num_to_replace)
         random.shuffle(is_replaced)
         for i, t in enumerate(is_replaced):
-            if i in vuids and not t:
-                blacklist.update([s.strip() for s in vuids[i].split('|')])
+            if vswaps[i] in vuids and not t:
+                blacklist.update([s.strip() for s in vuids[vswaps[i]].split('|')])
 
     if external_vanillas:
         #include vanilla characters, but using the same system/chances as all others
@@ -2323,6 +2323,7 @@ def get_sprite_swaps(char_ids, male, female, vswaps):
         if final_candidates:
             weights = [c.weight for c in final_candidates]
             swap_to[id] = random.choices(final_candidates, weights)[0]
+            set_pronoun(id, swap_to[id].gender, force=False)
             blacklist.update(swap_to[id].uniqueids)
             candidates.remove(swap_to[id])
         else:
@@ -2409,7 +2410,16 @@ def manage_character_appearance(preserve_graphics=False):
             random.shuffle(male)
             change_to = dict(list(zip(sorted(male), male)) +
                              list(zip(sorted(female), female)))
-
+                             
+    for charid, spriteid in change_to.items():
+        if spriteid in [0, 0x06, 0x08, 0x12]:
+            set_pronoun(charid, 'female')
+        elif spriteid in [0x03, 0x0A, 0x0C, 0x0D, 0x0E, 0x0F, 0x13, 0x14]:
+            set_pronoun(charid, 'neutral', force=False) # 45%/45%/10% chance
+        else:
+            set_pronoun(charid, 'male')
+    print('--vanilla pronouns set--\n'')
+    
     manage_character_names(change_to, male)
 
     swap_to = get_sprite_swaps(char_ids, male, female, change_to)
@@ -5841,6 +5851,8 @@ def randomize():
     elif options_.mode.name == "dragonhunt":
         the_end_comes_beyond_crusader()
 
+    if options_.is_code_active('shouldweask'):
+        load_patch_file('dialogue')
     manage_dialogue_patches(fout)
     
     rewrite_title(text="FF6 BCEX %s" % seed)

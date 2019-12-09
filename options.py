@@ -227,6 +227,7 @@ NORMAL_CODES = [
     Code('rushforpower', "OLD VARGAS FIGHT MODE"),
     Code('johnnydmad', "MUSIC REPLACEMENT MODE"),
     Code('johnnyachaotic', "MUSIC MANGLING MODE"),
+    Code('shouldweask', "EXPERIMENTAL SCRIPT DESTRUCTION MODE"),
     #Code('sometimeszombies', "OLD CHARACTER PALETTE MODE"),
     Code('HAKCSBKC', 'ALTERNATE GOGO MODE', key1='application', key2='octetstream'),
     Code('QGWURNGNSEIMKTMDFBIX', 'DIVERGENT PATHS MODE', key1='power', key2='panda')

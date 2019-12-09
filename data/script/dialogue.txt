@@ -1,0 +1,12 @@
+3:woman->{terraPerson}|she->{terraEy}|why's->{terraPlu?Why're:Why's}
+4:her@1->{terraEir}|her@2->{terraEm}|she'll->{TerraEy}'ll
+11:her->{terraEm}
+21:girl->{TERRAYOUTH}
+22:girl->{TERRAYOUTH}
+24:girl->{TERRAYOUTH}
+26:girl->{terraKid}
+27:girl->{terraKid}|she's->{TerraEyIs}
+31:woman->{terraPerson}
+34:her->{terraEm}
+35:she's->{TerraEyIs}
+43:girl->{terraGuy}
