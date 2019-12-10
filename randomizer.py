@@ -41,7 +41,7 @@ from chestrandomizer import mutate_event_items, get_event_items
 from towerrandomizer import randomize_tower
 from musicrandomizer import randomize_music, manage_opera, insert_instruments
 from menufeatures import (improve_item_display, improve_gogo_status_menu, improve_rage_menu, show_original_names, improve_dance_menu, y_equip_relics, fix_gogo_portrait)
-from dialoguemanager import manage_dialogue_patches, load_patch_file, set_pronoun
+from dialoguemanager import manage_dialogue_patches, manage_randomized_nouns, load_patch_file, set_pronoun
 from decompress import Decompressor
 from character import get_characters, get_character, equip_offsets
 from options import ALL_MODES, ALL_FLAGS, NORMAL_CODES, TOP_SECRET_CODES, MAKEOVER_MODIFIER_CODES, options_
@@ -2418,7 +2418,7 @@ def manage_character_appearance(preserve_graphics=False):
             set_pronoun(charid, 'neutral', force=False) # 45%/45%/10% chance
         else:
             set_pronoun(charid, 'male')
-    print('--vanilla pronouns set--\n'')
+    print('--vanilla pronouns set--\n')
     
     manage_character_names(change_to, male)
 
@@ -5758,6 +5758,9 @@ def randomize():
     reseed()
 
     code_hint()
+    reseed()
+    
+    manage_randomized_nouns()
     reseed()
     
     # ----- NO MORE RANDOMNESS PAST THIS LINE -----

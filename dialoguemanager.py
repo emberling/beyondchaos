@@ -72,9 +72,74 @@ gendered_nouns = { #male, female, neutral
     'person': ['man','woman','person'],
     'youth': ['boy','girl','youth'],
     'kid': ['boy','girl','kid'],
-    'guy': ['guy','girl','kid']
+    'guy': ['guy','girl','kid'],
+    'guySelf': ['guy','girl','person'],
+    'child': ['boy','girl','child'],
+    'guestflirt':['gentleman','lady','guest'],
+    'twinbro':['twin brother','twin sister','twin'],
+    'twin':['brother','sister','twin'],
+    'sabinsBrother':['brother','sister','<EDGAR>'],
+    'edgarsBrother':['brother','sister','<SABIN>'],
+    'honorific':['sir','lady','ser'],
+    'ser':['sir',"ma'am",'ser']
     }
-    
+
+class RandomizedNounSet:
+    def __init__(self, req, words):
+        self.req = req
+        self.words = words
+        
+    def validate(self):
+        for requirement in self.req:
+            if requirement[0].lower() not in dialogue_vars: return False
+            if requirement[1].lower() not in dialogue_vars[requirement[0].lower()]: return False
+        return True
+            
+            
+randomized_nouns = {
+'figaro': [RandomizedNounSet([('EdgarEy','he')],[('ruler','king'),('rulerSalutation','his highness'),('domain','kingdom'),('throne','throne')]),
+          RandomizedNounSet([('EdgarEy','she')],[('ruler','queen'),('rulerSalutation','her highness'),('domain','kingdom'),('throne','throne')]),
+          RandomizedNounSet([('EdgarEy','he')],[('ruler','duke'),('rulerSalutation','his lordship'),('domain','duchy'),('throne','title')]),
+          RandomizedNounSet([('EdgarEy','she')],[('ruler','duchess'),('rulerSalutation','her lordship'),('domain','duchy'),('throne','title')]),
+          RandomizedNounSet([('EdgarEy','he')],[('ruler','baron'),('rulerSalutation','his lordship'),('domain','barony'),('throne','title')]),
+          RandomizedNounSet([('EdgarEy','she')],[('ruler','baroness'),('rulerSalutation','her lordship'),('domain','barony'),('throne','title')]),
+          RandomizedNounSet([],[('ruler','president'),('rulerSalutation','the President'),('domain','republic'),('throne','position')]),
+          RandomizedNounSet([],[('ruler','chief'),('rulerSalutation','the chief'),('domain','nation'),('throne','chiefdom')]),
+          RandomizedNounSet([],[('ruler','guru'),('rulerSalutation','The enlightened one'),('domain','commune'),('throne','holy calling')])
+          ],
+'sonofa': [RandomizedNounSet([],[('submariner','submariner')]),
+           RandomizedNounSet([],[('submariner','sandworm')]),
+           RandomizedNounSet([],[('submariner','sin eater')]),
+           RandomizedNounSet([],[('submariner','sabotender')]),
+           RandomizedNounSet([],[('submariner','subligar')]),
+           RandomizedNounSet([],[('submariner','sandwich')]),
+           RandomizedNounSet([],[('submariner','sinspawn')]),
+           RandomizedNounSet([],[('submariner','samurai')]),
+           RandomizedNounSet([],[('submariner','sorceress')]),
+           RandomizedNounSet([],[('submariner','Sinistral')]),
+           RandomizedNounSet([],[('submariner','save point')]),
+           RandomizedNounSet([],[('submariner','superboss')]),
+           RandomizedNounSet([],[('submariner','SwdTech')]),
+           RandomizedNounSet([],[('submariner','scimitar')]),
+           RandomizedNounSet([],[('submariner','supernova')])
+           ] }
+           
+def manage_randomized_nouns():
+    for nounslot, options in randomized_nouns.items():
+        attempts = 0
+        while True:
+            attempts += 1
+            thisnoun = random.choice(options)
+            if not thisnoun.validate():
+                if attempts >= 1000:
+                    print(f'warning: random noun {nounslot} found no valid entries (may be just bad luck). using an invalid one.')
+                    break
+                continue
+            break
+        for word in thisnoun.words:
+            set_dialogue_var(nounslot + word[0], word[1])
+            print(f"random noun '{nounslot+word[0]}' -> {word[1]}")
+            
 def set_dialogue_var(k, v):
     dialogue_vars[k.lower()] = v
     
@@ -271,7 +336,7 @@ def patch(text):
         return None
     #print(f"patching {text}", end="")
     while True:
-        match = re.search("\{(.+)\}", text)
+        match = re.search("\{([^}]+)\}", text)
         if not match: break
         
         # handle conditionals/flags
