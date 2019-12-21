@@ -73,15 +73,19 @@ gendered_nouns = { #male, female, neutral
     'youth': ['boy','girl','youth'],
     'kid': ['boy','girl','kid'],
     'guy': ['guy','girl','kid'],
-    'guySelf': ['guy','girl','person'],
+    'guyPerson': ['guy','girl','person'],
+    'guyLady': ['guy','lady','person'],
+    'guyClown': ['guy','lady','clown'],
     'child': ['boy','girl','child'],
     'guestflirt':['gentleman','lady','guest'],
     'twinbro':['twin brother','twin sister','twin'],
     'twin':['brother','sister','twin'],
     'sabinsBrother':['brother','sister','<EDGAR>'],
     'edgarsBrother':['brother','sister','<SABIN>'],
-    'honorific':['sir','lady','ser'],
-    'ser':['sir',"ma'am",'ser']
+    'bigBrother':['big brother','big sister','<EDGAR>'],
+    'title':['sir','lady','ser'],
+    'ser':['sir',"ma'am",'ser'],
+    'yourChild':['a son','a daughter','your own child']
     }
 
 class RandomizedNounSet:
@@ -103,7 +107,7 @@ randomized_nouns = {
           RandomizedNounSet([('EdgarEy','she')],[('ruler','duchess'),('rulerSalutation','her lordship'),('domain','duchy'),('throne','title')]),
           RandomizedNounSet([('EdgarEy','he')],[('ruler','baron'),('rulerSalutation','his lordship'),('domain','barony'),('throne','title')]),
           RandomizedNounSet([('EdgarEy','she')],[('ruler','baroness'),('rulerSalutation','her lordship'),('domain','barony'),('throne','title')]),
-          RandomizedNounSet([],[('ruler','president'),('rulerSalutation','the President'),('domain','republic'),('throne','position')]),
+          RandomizedNounSet([],[('ruler','president'),('rulerSalutation','the President'),('domain','republic'),('throne','presidency')]),
           RandomizedNounSet([],[('ruler','chief'),('rulerSalutation','the chief'),('domain','nation'),('throne','chiefdom')]),
           RandomizedNounSet([],[('ruler','guru'),('rulerSalutation','The enlightened one'),('domain','commune'),('throne','holy calling')])
           ],
@@ -111,12 +115,15 @@ randomized_nouns = {
            RandomizedNounSet([],[('submariner','sandworm')]),
            RandomizedNounSet([],[('submariner','sin eater')]),
            RandomizedNounSet([],[('submariner','sabotender')]),
+           RandomizedNounSet([],[('submariner','sahagin')]),
            RandomizedNounSet([],[('submariner','subligar')]),
            RandomizedNounSet([],[('submariner','sandwich')]),
            RandomizedNounSet([],[('submariner','sinspawn')]),
            RandomizedNounSet([],[('submariner','samurai')]),
            RandomizedNounSet([],[('submariner','sorceress')]),
+           RandomizedNounSet([],[('submariner','summoner')]),
            RandomizedNounSet([],[('submariner','Sinistral')]),
+           RandomizedNounSet([],[('submariner','sphere grid')]),
            RandomizedNounSet([],[('submariner','save point')]),
            RandomizedNounSet([],[('submariner','superboss')]),
            RandomizedNounSet([],[('submariner','SwdTech')]),
@@ -140,6 +147,16 @@ def manage_randomized_nouns():
             set_dialogue_var(nounslot + word[0], word[1])
             print(f"random noun '{nounslot+word[0]}' -> {word[1]}")
             
+    #also set some dialogue variables that follow from other dialogue variables
+    set_dialogue_var('twins', 'twins')
+    try:
+        if dialogue_vars['edgarey'] == 'he' and dialogue_vars['sabiney'] == 'he':
+            set_dialogue_var('twins', 'brothers')
+        elif dialogue_vars['edgarey'] == 'she' and dialogue_vars['sabiney'] == 'she':
+            set_dialogue_var('twins', 'sisters')
+    except KeyError:
+        pass
+    
 def set_dialogue_var(k, v):
     dialogue_vars[k.lower()] = v
     
