@@ -88,7 +88,7 @@ Q: How do I defeat Ultros at the Esper's hideout without Sketch?
 A: Just kill it. (If you happen to have another way to use Tentacle on him, that'll work too.)
 
 Q: Speaking of Sketch, was the Sketch Glitch patched?
-A: No. Believe it or not, there are people out there who want to play using the Sketch Glitch, which is why the randomizer is based off of the FF3 US 1.0 rom. In an ideal world you would be able to choose whether or not to patch the glitch, but since there is such small demand for that kind of feature and it would take considerable effort, I haven't implemented it.
+A: By default, yes. But if you want it unpatched, use the code 'sketch'.
 
 Q: The Moogle Charm doesn't work.
 A: It was nerfed. FF6 uses a threat level based random encounter system, and Moogle Charm increases threat level by the lowest possible value without removing encounters altogether. The specifics are a bit complex, but you should think of it as having about a 1/256 encounter rate if you've been wearing it for a while. Also, some later dungeons might randomly ignore Moogle Charm altogether.
@@ -199,6 +199,9 @@ A: This feature was removed because it didn't work properly with one of the new 
 Q: My berserker who uses Rage did a slam attack and it did a whole bunch of damage/somehow killed someone on my team.
 A: That's a bug. For some reason when he has the Rage status, the slam attack gets the properties of the Fire spell but with a super high Magic Power. If the enemy has Reflect, it'll hit your team. Hopefully you have equipment that absorbs or nullifies fire.
 
+Q: I can't find a Striker to recruit Shadow?
+A: You can always get a Striker in the coliseum by buying an item from a shop, betting it, and then betting what you win.
+
 Q: Can you add X to the mini-guide that gets generated?
 A: Let me know. I'm not sure what kinds of things people want in the mini-FAQ.
 
@@ -226,6 +229,7 @@ A: The best way to report it is on the Beyond Chaos Discord in the #bugs channel
     glennmatthews - Command descriptions in logfile
     Lockirby2 - The worringtriad and notawaiter codes
     myself086 - new menu features and natural magic expansion
+	GreenKnight5 - GUI
 
 --- SPECIAL THANKS ---
     cecil188 - OG beyond chaos fan
@@ -239,7 +243,7 @@ A: The best way to report it is on the Beyond Chaos Discord in the #bugs channel
 	Lenophis - unhardcoded tintinabar patch
     Novalia Spirit - "Allergic Dog" bug fix patch
     Leet Sketcher - Y Equip Relics patch
-    Assassin - That Damn Yellow Streak fix patch
+    Assassin - That Damn Yellow Streak fix patch, sketch fix patch
 	Power Panda - Divergent Paths: The 3 Scenarios
     ff6hacking.com community - additional sprites, see custom/sprites/credits.txt for details
     AND YOU

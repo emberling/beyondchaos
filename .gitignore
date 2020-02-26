@@ -12,3 +12,5 @@ beyondchaos_ex.exe
 custom.zip
 beyondchaos_windows.zip
 devtools/songlen.txt
+.vscode/*
+.vs/*
