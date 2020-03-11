@@ -1414,6 +1414,10 @@ def randomize_music(fout, options_, opera=None, form_music_overrides={}):
         data = process_map_music(data)
     data = process_formation_music_by_table(data, form_music_overrides=form_music_overrides)
     
+    # Sound engine hack (highly experimental, not for production yet)
+    # Prevents rare glitching/crashing when loops have no explicit notes
+    data = byte_insert(data, 0x50B55, b"\x6F\x6F")
+    
     fout.seek(0)
     fout.write(data)
     
