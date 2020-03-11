@@ -1425,9 +1425,15 @@ def randomize_music(fout, options_, opera=None, form_music_overrides={}):
     #data = byte_insert(data, 0x50B55, b"\x6F\x6F")
     
     #attempt 2: dummy out shadow end loop & shadow volta
-    data = byte_insert(data, 0x50B06, b"\xEB")
-    data = byte_insert(data, 0x50B0F, b"\xEB")
+    #this caused unpredictable behavior of legato modes
+    #data = byte_insert(data, 0x50B06, b"\xEB")
+    #data = byte_insert(data, 0x50B0F, b"\xEB")
     
+    #attempt 3: flag shadow end loop & shadow volta to be ignored
+    #           if a E2 is shadowed and therefore loop state is ambiguous
+    hackblob = b"\x78\xFF\xC5\xF0\x19\x68\xE2\xD0\x03\x8F\xFF\xC5\x68\xE3\xD0\x05\x3F\x25\x17\x2F\xD4\x68\xF5\xD0\x05\x3F\x95\x16\x2F\xCB\x68\xE5\xD0\x05\x3F\xCF\x15\x2F\xC2\x68\xE7\xD0\x0B\x3F\xF3\x15\x2F\xB9\x00\x00\x00\x00\x00\x00"
+    data = byte_insert(data, 0x50B05, hackblob)
+        
     fout.seek(0)
     fout.write(data)
     
