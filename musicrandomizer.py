@@ -1416,7 +1416,17 @@ def randomize_music(fout, options_, opera=None, form_music_overrides={}):
     
     # Sound engine hack (highly experimental, not for production yet)
     # Prevents rare glitching/crashing when loops have no explicit notes
-    data = byte_insert(data, 0x50B55, b"\x6F\x6F")
+    # This is due to a design flaw where the "shadow command" loop ignores
+    # any loops opened within it, causing subsequent end and volta commands
+    # to reference the wrong area of memory
+    
+    #attempt 1 - process shadow commands one at a time
+    #this broke ties sometimes
+    #data = byte_insert(data, 0x50B55, b"\x6F\x6F")
+    
+    #attempt 2: dummy out shadow end loop & shadow volta
+    data = byte_insert(data, 0x50B06, b"\xEB")
+    data = byte_insert(data, 0x50B0F, b"\xEB")
     
     fout.seek(0)
     fout.write(data)
